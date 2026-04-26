@@ -58,6 +58,7 @@ public:
 		size++;
 	}
 	//将一个空闲内存插在链表头上（头插）
+
 	void* Pop() {
 		assert(free_list);
 		void* obj = free_list;
@@ -66,10 +67,12 @@ public:
 		return obj;
 	}
 	//删除链表头的第一个空间内存（头删）
+
 	bool Empty() const {
 		return free_list == nullptr;
 	}
 	//查看链表是否为空
+
 	size_t Size() const {
 		return size;
 	}
@@ -84,6 +87,8 @@ public:
 		free_list = start;
 		size += n;
 	}
+	//将一段连接好的长度为 n 的空间内存，插到链表头上
+
 	void PopRange(void* start, void* end, size_t n) {
 		assert(n > 0);
 		assert(n <= size);
@@ -96,7 +101,18 @@ public:
 		NextObj(end) = nullptr;
 		size -= n;
 	}
+	//从链表头一次性拿走 n 个空间内存
 
+	struct Span {
+		size_t page_id = 0;//起始页数
+		size_t page_cnt = 0;//一共多少页
+		size_t obj_size = 0;//小对象大小
+		size_t use_count = 0;//小对象个数
+		void* free_list = nullptr;
+		Span* prev = nullptr;
+		Span* next = nullptr;
+	};
+	//记录一段连续的页数
 
 
 
