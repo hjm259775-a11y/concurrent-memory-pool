@@ -47,6 +47,29 @@ public:
 		else return Index(bytes - 64 * 1024, 8 * 1024) + group_array[0] + group_array[1] + group_array[2] + group_array[3];//后面加的是前面区间的桶
 	}
 	//Index1 和 Index 配合可得出自身在208个桶里的哪个桶
+
+	static inline size_t NumMoveSize(size_t size) {
+		assert(size > 0);
+		size_t num = MAX_BYTES / size;
+		if (num < 2) num = 2;//防止频繁向下申请
+		if (num > 512) num = 512;//卡上限防止占太多缓存
+		return num;
+	}
+	//用总上限除单个对象大小，算下最多可以拿多少个这种对象
+
+	static inline size_t NumMovePage(size_t size) {
+		size_t num = NumMoveSize(size);
+		size_t bytes = num * size;
+		size_t pages = bytes / PAGE_SIZE;
+		if (bytes % PAGE_SIZE != 0) {
+			pages++;
+		}
+		return pages;
+	}
+	//算出拿这些对象需要多少页内存
+
+
+
 };
 
 class FreeList {
@@ -89,7 +112,7 @@ public:
 	}
 	//将一段连接好的长度为 n 的空间内存，插到链表头上
 
-	void PopRange(void* start, void* end, size_t n) {
+	void PopRange(void*& start, void*& end, size_t n) {
 		assert(n > 0);
 		assert(n <= size);
 		start = free_list;
@@ -107,6 +130,7 @@ private:
 	void* free_list = nullptr;
 	size_t size = 0;
 };
+//小对象单链表，管理某个桶的空闲内存
 
 
 struct Span {
@@ -126,23 +150,58 @@ public:
 		head.next = &head;
 		head.prev = &head;
 	}
+	//初始化双向循环空链表
+
 	bool Empty() const {
 		return head.next == &head;
 	}
+	//判断链表是否为空
+
 	Span* Begin() {
 		return head.next;
 	}
+	//返回循环链表第一个节点
+
 	Span* End() {
 		return &head;
 	}
+	//表示循环链表结束位置
+
 	void Insert(Span* pos,Span* span) {
 		Span* prev = pos->prev;
-
+		prev->next = span;
+		span->prev = prev;
+		span->next = pos;
+		pos->prev = span;
 	}
+	//把span插到pos前面
 
+	void Erase(Span* span) {
+		Span* prev = span->prev;
+		Span* next = span->next;
+		prev->next = next;
+		next->prev = prev;
+		span->prev = nullptr;
+		span->next = nullptr;
+	}
+	//把span从链表里删除
+
+	void PushFront(Span* span) {
+		Insert(Begin(), span);
+	}
+	//将span插入到链表最前面
+
+	Span* PopFront() {
+		if (Empty())return nullptr;
+		Span* front = Begin();
+		Erase(front);
+		return front;
+	}
+	//删除链表第一个节点，并返回
 private:
-	Span head;
+	Span head; 
 };
+//双向循环链表，管理span
 
 
 
