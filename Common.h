@@ -168,6 +168,9 @@ public:
 	//表示循环链表结束位置
 
 	void Insert(Span* pos,Span* span) {
+		assert(pos);
+		assert(span);
+		assert(span != &head);
 		Span* prev = pos->prev;
 		prev->next = span;
 		span->prev = prev;
@@ -177,6 +180,8 @@ public:
 	//把span插到pos前面
 
 	void Erase(Span* span) {
+		assert(span);
+		assert(span != &head);
 		Span* prev = span->prev;
 		Span* next = span->next;
 		prev->next = next;
