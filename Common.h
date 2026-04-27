@@ -103,30 +103,45 @@ public:
 	}
 	//从链表头一次性拿走 n 个空间内存
 
-	struct Span {
-		size_t page_id = 0;//起始页数
-		size_t page_cnt = 0;//一共多少页
-		size_t obj_size = 0;//小对象大小
-		size_t use_count = 0;//小对象个数
-		void* free_list = nullptr;
-		Span* prev = nullptr;
-		Span* next = nullptr;
-	};
-	//记录一段连续的页数
-
-
-
-
-
-
-
-
-
-
-
 private:
 	void* free_list = nullptr;
 	size_t size = 0;
+};
+
+
+struct Span {
+	size_t page_id = 0;//起始页数
+	size_t page_cnt = 0;//一共多少页
+	size_t obj_size = 0;//小对象大小
+	size_t use_count = 0;//小对象个数
+	void* free_list = nullptr;
+	Span* prev = nullptr;
+	Span* next = nullptr;
+};
+//记录一段连续的页数
+
+class SpanList {
+public:
+	SpanList() {
+		head.next = &head;
+		head.prev = &head;
+	}
+	bool Empty() const {
+		return head.next == &head;
+	}
+	Span* Begin() {
+		return head.next;
+	}
+	Span* End() {
+		return &head;
+	}
+	void Insert(Span* pos,Span* span) {
+		Span* prev = pos->prev;
+
+	}
+
+private:
+	Span head;
 };
 
 
