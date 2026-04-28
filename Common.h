@@ -2,7 +2,8 @@
 #include <cassert>
 #include <cstddef>
 
-constexpr size_t MAX_BYTES = 256 * 1024;//内存池主要管理的小对象上限是256KB
+constexpr size_t NPAGES = 129; //PageCache 用到的页面分桶，可管理 1 到 128 页
+constexpr size_t MAX_BYTES = 256 * 1024;//内存池主要管理的小对象上限是 256KB
 constexpr size_t NFREELISTS = 208;
 constexpr size_t PAGE_SHIFT = 13;
 constexpr size_t PAGE_SIZE = static_cast<size_t>(1) << PAGE_SHIFT;//即一页大小为8KB，2^13
