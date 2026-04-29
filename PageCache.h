@@ -144,6 +144,7 @@ public:
 		span->free_list = nullptr;
 		span->prev = nullptr;
 		span->next = nullptr;
+		//Çå³É¿ÕÏÐÒ³Ãæ×´Ì¬
 
 		while (span->page_id > 0) {
 			size_t prev_page_id = span->page_id - 1;
@@ -153,20 +154,45 @@ public:
 			}
 
 			Span* prev_span = it->second;
-			if (prev_span == span) {
-				break;
-			}
-			if (prev_span->use_count != 0) {
-				break;
-			}
-			if (prev_span->obj_size != 0) {
-				break;
-			}
-			if (prev_span->page_cnt + span->page_cnt >= NPAGES) {
-				break;
+
+			if (prev_span == span) break;
+			if (prev_span->use_count != 0) break;
+			if (prev_span->obj_size != 0) break;
+			if (prev_span->page_cnt + span->page_cnt >= NPAGES) break;
+
+			span_lists[prev_span->page_cnt].Erase(prev_span);
+			UnregisterSpan(prev_span);
+			UnregisterSpan(span);
+
+			span->page_id = prev_span->page_id;
+			span->page_cnt += prev_span->page_cnt;
+
+			RegisterSpan(span);
+
+			while (true) {
+				size_t next_page_id = span->page_id + span->page_cnt;
+				auto it = id_span_map.find(next_page_id);
+				if (it == id_span_map.end()) {
+					break;
+				}
+
+				Span* next_span = it->second;
+				if (next_span == span) break;
+				if (next_span->use_count != 0) break;
+				if (next_span->obj_size != 0) break;
+				if (next_span->page_cnt + span->page_cnt >= NPAGES) break;
+
+				span_lists[next_span->page_cnt].Erase(next_span);
+				UnregisterSpan(next_span);
+				UnregisterSpan(span);
+
+				span->page_cnt += next_span->page_cnt;
+
+				RegisterSpan(span);
+
 			}
 
-
+			span_lists[span->page_cnt].PushFront(span);
 
 		}
 	}
