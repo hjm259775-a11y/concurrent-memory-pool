@@ -24,7 +24,7 @@ public:
 		remain_bytes -= sizeof(T);
 		return obj;
 	} 
-	//优先复用旧对象，不够则申请大块空间
+	//优先复用旧对象，不够则申请大块空间作为新的管理对象
 
 	void Delete(T* obj) {
 		assert(obj);
