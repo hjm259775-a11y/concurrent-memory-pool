@@ -156,8 +156,8 @@ public:
 			Span* prev_span = it->second;
 
 			if (prev_span == span) break;
-			if (prev_span->use_count != 0) break;
-			if (prev_span->obj_size != 0) break;
+			if (prev_span->use_count != 0) break;//有小对象说明正在被使用，则不能合并
+			if (prev_span->obj_size != 0) break;//
 			if (prev_span->page_cnt + span->page_cnt >= NPAGES) break;
 
 			span_lists[prev_span->page_cnt].Erase(prev_span);
